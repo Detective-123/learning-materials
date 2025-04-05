@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>test document</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #fff0f5;
+            flex-direction: column;
+        }
+
+        
+    </style>
+</head>
+<body>
+    <button onclick="showError()">Submit</button>
+
+    <!-- Error Popup -->
+    <div id="popup" class="popup">
+        <div class="popup-box">
+            <p>🚨Oops! Something went wrong.</p>
+            <button onclick="closePopup()">Close</button>
+        </div>
+    </div>
+    
+    <script>
+        function showError() {
+            document.getElementById('popup').style.display = "flex";
+        }
+
+        function closePopup() {
+            document.getElementById('popup').style.display = "none";
+        }
+    </script>
+
+</body>
+</html>
