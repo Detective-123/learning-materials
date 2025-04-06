@@ -13,11 +13,15 @@ const qRect = question.getBoundingClientRect();
 let count = 0;
 let count2 = 0;
 
-yesBtn.addEventListener('click', () => {
+yesBtnId.addEventListener('click', () => {
 	count2++;
 	if (count2 == 1) {
 		question.innerHTML = "I love youu too! hehe😊";
 		yesBtn.innerHTML = "Next Page";
+	}
+	
+	else if(count2 == 2) {
+		goToPage();
 	}
 
 	noBtnId.style.display = "none";
@@ -69,4 +73,14 @@ function createHearts(count) {
 			heart.remove();
 		}, 1500);
 	}
+}
+
+
+function goToPage() {
+	document.body.classList.remove("slide-in");
+	document.body.classList.add("slide-out");
+
+	setTimeout(() => {
+		window.location.href = "main.html";
+	}, 500);
 }
