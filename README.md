@@ -1,2 +1,3 @@
 # Interactive-Website
-Interactive Love Letter type website for my babygurl
+Interactive Website for your loved ones
+
