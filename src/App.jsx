@@ -331,33 +331,59 @@ export default function App() {
     closeModals();
   };
 
-  const handleSectionSubmit = (e) => {
+  const handleSectionSubmit = async (e) => {
     e.preventDefault();
-    const newSec = {
+
+    const title = sectionForm.title.trim();
+    const description = sectionForm.description.trim();
+
+    const newSection = {
       id: "sec-" + Date.now(),
-      title: sectionForm.title.trim(),
-      description: sectionForm.description.trim(),
-      cards: [],
+      title,
+      description,
     };
 
-    setData((prev) => [...prev, newSec]);
-    setSectionForm({ title: "", description: "" });
+    const { error } = await supabase.from("sections").insert(newSection);
+
+    if (error) {
+      console.error(error);
+      showToast("Failed to create section", "error");
+      return;
+    }
+
+    await fetchData();
+
+    setSectionForm({
+      title: "",
+      description: "",
+    });
+
     closeModals();
+
     showToast("Section created successfully", "success");
   };
 
-  const deleteCard = (sectionId, cardId) => {
-    if (window.confirm("Are you sure you want to remove this resource card?")) {
-      setData((prev) =>
-        prev.map((sec) => {
-          if (sec.id === sectionId) {
-            return { ...sec, cards: sec.cards.filter((c) => c.id !== cardId) };
-          }
-          return sec;
-        }),
-      );
-      showToast("Resource removed");
+  const deleteCard = async (sectionId, cardId) => {
+    if (
+      !window.confirm("Are you sure you want to remove this resource card?")
+    ) {
+      return;
     }
+
+    const { error } = await supabase
+      .from("resources")
+      .delete()
+      .eq("id", cardId);
+
+    if (error) {
+      console.error(error);
+      showToast("Failed to delete resource", "error");
+      return;
+    }
+
+    await fetchData();
+
+    showToast("Resource removed", "success");
   };
 
   const deleteSection = (sectionId) => {
