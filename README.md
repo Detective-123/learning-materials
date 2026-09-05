@@ -1,3 +1,2 @@
-# Interactive-Website
-Interactive Website for your loved ones
-
+# Learning materials
+learning materials and resources such as docs and templates too
