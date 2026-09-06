@@ -1,110 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "./utils/supabase";
 
-// Initial Seed Data (Java, Spring, GitHub)
-const initialData = [
-  {
-    id: "sec-java",
-    title: "Java Platform",
-    description: "Language references, JVM specifications, and core tutorials",
-    cards: [
-      {
-        id: "card-1",
-        title: "Java SE Documentation (Oracle)",
-        url: "https://docs.oracle.com/en/java/javase/21/",
-        description:
-          "Official API specification and documentation for Java Standard Edition 21 LTS.",
-        tags: ["Official", "Docs", "Java21"],
-      },
-      {
-        id: "card-2",
-        title: "Baeldung Java Tutorials",
-        url: "https://www.baeldung.com/category/java/",
-        description:
-          "In-depth, code-driven tutorials covering core Java features and modern APIs.",
-        tags: ["Tutorials", "Guide", "BestPractices"],
-      },
-      {
-        id: "card-3",
-        title: "OpenJDK GitHub Repository",
-        url: "https://github.com/openjdk/jdk",
-        description:
-          "Official repository containing the source code for OpenJDK.",
-        tags: ["GitHub", "SourceCode", "JVM"],
-      },
-    ],
-  },
-  {
-    id: "sec-spring",
-    title: "Spring Framework",
-    description: "Spring Boot, Data, Security, and Microservice ecosystem",
-    cards: [
-      {
-        id: "card-4",
-        title: "Spring Boot Documentation",
-        url: "https://docs.spring.io/spring-boot/docs/current/reference/html/",
-        description:
-          "Comprehensive guide to building production-ready applications with Spring Boot.",
-        tags: ["Spring", "Docs", "Backend"],
-      },
-      {
-        id: "card-5",
-        title: "Spring Initializr",
-        url: "https://start.spring.io/",
-        description:
-          "Quick-start generator tool for bootstrapping new Spring Boot projects.",
-        tags: ["Tooling", "Generator"],
-      },
-      {
-        id: "card-6",
-        title: "Spring Framework Core GitHub",
-        url: "https://github.com/spring-projects/spring-framework",
-        description:
-          "Source code for the core Spring Framework, IOC Container, and Web MVC.",
-        tags: ["GitHub", "Framework"],
-      },
-    ],
-  },
-  {
-    id: "sec-github",
-    title: "GitHub & Git",
-    description:
-      "Version control specs, CLI utilities, and repository management",
-    cards: [
-      {
-        id: "card-7",
-        title: "GitHub Documentation",
-        url: "https://docs.github.com/",
-        description:
-          "Help articles, API guides, Actions workflows, and GitHub ecosystem details.",
-        tags: ["Docs", "Git", "CI/CD"],
-      },
-      {
-        id: "card-8",
-        title: "Pro Git Book (Free)",
-        url: "https://git-scm.com/book/en/v2",
-        description:
-          "The definitive book on Git version control written by Scott Chacon and Ben Straub.",
-        tags: ["Book", "Guide", "Git"],
-      },
-      {
-        id: "card-9",
-        title: "GitHub CLI Docs",
-        url: "https://cli.github.com/manual/",
-        description:
-          "Command line tool manuals for managing GitHub PRs, issues, and repositories from the terminal.",
-        tags: ["CLI", "Tooling"],
-      },
-    ],
-  },
-];
-
 export default function App() {
   // Persistence state
   const [data, setData] = useState([]);
 
   const fetchData = async () => {
-    const { data, error } = await supabase.from("sections").select(`
+    const { data: sections, error } = await supabase.from("sections").select(`
             id,
             title,
             description,
@@ -118,7 +20,8 @@ export default function App() {
         `);
 
     if (error) {
-      console.error(error);
+      console.error("Error fetching sections:", error);
+      showToast("Failed to load resources", "error");
       return;
     }
 
@@ -386,18 +289,33 @@ export default function App() {
     showToast("Resource removed", "success");
   };
 
-  const deleteSection = (sectionId) => {
+  const deleteSection = async (sectionId) => {
     const sec = data.find((s) => s.id === sectionId);
+
     if (!sec) return;
 
     if (
-      window.confirm(
+      !window.confirm(
         `Delete section "${sec.title}" and all its ${sec.cards.length} cards?`,
       )
     ) {
-      setData((prev) => prev.filter((s) => s.id !== sectionId));
-      showToast("Section deleted");
+      return;
     }
+
+    const { error } = await supabase
+      .from("sections")
+      .delete()
+      .eq("id", sectionId);
+
+    if (error) {
+      console.error(error);
+      showToast("Failed to delete section", "error");
+      return;
+    }
+
+    await fetchData();
+
+    showToast("Section deleted", "success");
   };
 
   // Filter Cards based on query
@@ -423,9 +341,9 @@ export default function App() {
               stroke="currentColor"
             >
               <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
                 d="M5 13l4 4L19 7"
               />
             </svg>
@@ -447,9 +365,9 @@ export default function App() {
                 stroke="currentColor"
               >
                 <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
                   d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
                 />
               </svg>
@@ -458,7 +376,7 @@ export default function App() {
               <h1 className="font-bold text-slate-900 dark:text-white text-base leading-none">
                 Dev Hub
               </h1>
-              <span class="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-xs text-slate-500 dark:text-slate-400">
                 Learning Knowledge Base
               </span>
             </div>
@@ -474,9 +392,9 @@ export default function App() {
                 stroke="currentColor"
               >
                 <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                 />
               </svg>
@@ -503,9 +421,9 @@ export default function App() {
                 stroke="currentColor"
               >
                 <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
                   d="M12 4v16m8-8H4"
                 />
               </svg>
@@ -523,9 +441,9 @@ export default function App() {
                 stroke="currentColor"
               >
                 <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
                   d="M12 4v16m8-8H4"
                 />
               </svg>
@@ -546,9 +464,9 @@ export default function App() {
                   stroke="currentColor"
                 >
                   <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
                     d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14 12a2 2 0 11-4 0 2 2 0 014 0z"
                   />
                 </svg>
@@ -560,9 +478,9 @@ export default function App() {
                   stroke="currentColor"
                 >
                   <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
                     d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
                   />
                 </svg>
@@ -581,9 +499,9 @@ export default function App() {
               stroke="currentColor"
             >
               <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
               />
             </svg>
@@ -671,9 +589,9 @@ export default function App() {
                         stroke="currentColor"
                       >
                         <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
                           d="M12 4v16m8-8H4"
                         />
                       </svg>
@@ -690,9 +608,9 @@ export default function App() {
                         stroke="currentColor"
                       >
                         <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
                           d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                         />
                       </svg>
@@ -738,9 +656,9 @@ export default function App() {
                                 stroke="currentColor"
                               >
                                 <path
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  stroke-width="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
                                   d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
                                 />
                               </svg>
@@ -757,9 +675,9 @@ export default function App() {
                                 stroke="currentColor"
                               >
                                 <path
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  stroke-width="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
                                   d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
                                 />
                               </svg>
@@ -776,9 +694,9 @@ export default function App() {
                                 stroke="currentColor"
                               >
                                 <path
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  stroke-width="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
                                   d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                                 />
                               </svg>
@@ -802,9 +720,9 @@ export default function App() {
                               stroke="currentColor"
                             >
                               <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
                                 d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
                               />
                             </svg>
@@ -851,9 +769,9 @@ export default function App() {
                 stroke="currentColor"
               >
                 <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.5"
                   d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
                 />
               </svg>
@@ -887,9 +805,9 @@ export default function App() {
                   stroke="currentColor"
                 >
                   <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
                     d="M6 18L18 6M6 6l12 12"
                   />
                 </svg>
@@ -1017,9 +935,9 @@ export default function App() {
                   stroke="currentColor"
                 >
                   <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
                     d="M6 18L18 6M6 6l12 12"
                   />
                 </svg>
